@@ -1,0 +1,13 @@
+*.o
+*.a
+*.so
+*.out
+
+/asm-aarch64
+/build/
+
+*~
+*.swp
+*.tmp
+
+.vscode/
