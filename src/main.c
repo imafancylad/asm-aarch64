@@ -1,5 +1,8 @@
-#include <errno.h>
+#include "source.h"
+#include "parser.h"
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define PROGRAM_NAME "asm-aarch64"
@@ -22,55 +25,59 @@ static void print_usage(FILE *stream)
             PROGRAM_NAME);
 }
 
-static int check_input_file(const char *path)
-{
-    FILE *file = fopen(path, "r");
-
-    if (file == NULL) {
-        fprintf(stderr, "%s: cannot open '%s': %s\n", PROGRAM_NAME, path, strerror(errno));
-        return 1;
-    }
-
-    if (fclose(file) != 0) {
-        fprintf(stderr, "%s: failed to close '%s': %s\n", PROGRAM_NAME, path, strerror(errno));
-        return 1;
-    }
-
-    printf("%s: input file '%s' is accessible.\n", PROGRAM_NAME, path);
-    fprintf(stderr, "%s: assembly is not implemented yet.\n", PROGRAM_NAME);
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
-    if (argc == 1) {
+    if (argc == 1)
+    {
         print_usage(stdout);
         return 0;
     }
 
-    if (argc > 2) {
-        fprintf(stderr, "%s: too many arguments.\n", PROGRAM_NAME);
-
-        fprintf(stderr, "Run '%s --help' for usage information.\n", PROGRAM_NAME);
+    if (argc > 2)
+    {
+        fprintf(stderr,
+            "%s: too many arguments.\n"
+            "Run '%s --help' for usage information.\n",
+            PROGRAM_NAME,
+            PROGRAM_NAME);
         return 2;
     }
 
-    if (strcmp(argv[1], "--help") == 0 ||
-        strcmp(argv[1], "-h") == 0) {
+    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+    {
         print_usage(stdout);
         return 0;
     }
 
-    if (strcmp(argv[1], "--version") == 0) {
+    if (strcmp(argv[1], "--version") == 0)
+    {
         printf("%s %s\n", PROGRAM_NAME, PROGRAM_VERSION);
         return 0;
     }
 
-    if (argv[1][0] == '-') {
-        fprintf(stderr, "%s: unknown option '%s'.\n", PROGRAM_NAME, argv[1]);
-        fprintf(stderr, "Run '%s --help' for usage information.\n", PROGRAM_NAME);
+    if (argv[1][0] == '-')
+    {
+        fprintf(stderr,
+            "%s: unknown option '%s'.\n"
+            "Run '%s --help' for usage information.\n",
+            PROGRAM_NAME,
+            argv[1],
+            PROGRAM_NAME);
         return 2;
     }
 
-    return check_input_file(argv[1]);
+    char *source = NULL;
+    size_t source_length = 0;
+
+    if (source_read_file(argv[1], &source, &source_length) != 0)
+    {
+        return 1;
+    }
+
+    (void)source_length;
+
+    int result = parser_process(source);
+    free(source);
+    
+    return result;
 }
