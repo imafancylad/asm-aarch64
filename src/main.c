@@ -76,7 +76,12 @@ int main(int argc, char *argv[])
 
     (void)source_length;
 
-    int result = parser_process(source);
+    InstructionList instructions;
+    instruction_list_init(&instructions);
+
+    int result = parser_process(source, &instructions);
+
+    instruction_list_destroy(&instructions);
     free(source);
     
     return result;
