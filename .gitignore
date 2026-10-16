@@ -4,7 +4,6 @@
 *.out
 
 /asm-aarch64
-/build/
 
 *~
 *.swp

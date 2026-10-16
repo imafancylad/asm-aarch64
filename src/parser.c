@@ -283,13 +283,21 @@ static int parse_statement(Parser *parser)
 
     if (parser->current.type != TOKEN_IDENTIFIER)
     {
-        fprintf(stderr, "Error at line %zu, column %zu: expected instruction or directive\n", parser->current.line, parser->current.column);
+        fprintf(stderr, "Error at line %zu, column %zu: expected instruction, label, or directive\n", parser->current.line, parser->current.column);
         parser->had_error = 1;
         return 0;
     }
 
     Token mnemonic = parser->current;
     advance(parser);
+
+    // labels such as _start: or main:
+    // are accepted but not yet stored in the instruction list
+    if (parser->current.type == TOKEN_COLON)
+    {
+        advance(parser);
+        return !parser->had_error;
+    }
 
     if (token_is_identifier(&mnemonic, "mov"))
     {
