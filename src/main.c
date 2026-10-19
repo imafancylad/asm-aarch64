@@ -147,10 +147,17 @@ int main(int argc, char *argv[])
 
     if (result == 0 && output_path != NULL)
     {
-        if (!output_write_binary(output_path, &instructions))
+        size_t path_length = strlen(output_path);
+        int write_elf = path_length >= 2 && strcmp(output_path + path_length - 2, ".o") == 0;
+
+        int write_success = write_elf ? output_write_elf(output_path, &instructions) : output_write_binary(output_path, &instructions);
+
+        if (!write_success)
         {
             result = 1;
-        } else {
+        }
+        else
+        {
             printf("\nOutput written to: %s\n", output_path);
         }
     }

@@ -4,5 +4,6 @@
 #include "instruction.h"
 
 int output_write_binary(const char *path, const InstructionList *instructions);
+int output_write_elf(const char *path, const InstructionList *instructions);
 
 #endif

@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 void instruction_list_init(InstructionList *list)
@@ -100,7 +101,7 @@ static size_t find_symbol(const InstructionList *list, const char *name, size_t 
     {
         const Symbol *symbol = &list->symbols[i];
 
-        if (strlen(symbol->name) == name_length && memcpy(symbol->name, name, name_length) == 0)
+        if (strlen(symbol->name) == name_length && memcmp(symbol->name, name, name_length) == 0)
         {
             return i;
         }
