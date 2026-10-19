@@ -262,6 +262,15 @@ static int parse_global_directive(Parser *parser)
         return 0;
     }
 
+    Token symbol = parser->current;
+
+    if (!instruction_list_declare_global(parser->instructions, symbol.start, symbol.length))
+    {
+        fprintf(stderr, "Error at line %zu: unable to declare global symbol\n", symbol.line);
+        parser->had_error = 1;
+        return 0;
+    }
+
     advance(parser);
 
     if (parser->current.type != TOKEN_NEWLINE && parser->current.type != TOKEN_EOF)
@@ -291,10 +300,15 @@ static int parse_statement(Parser *parser)
     Token mnemonic = parser->current;
     advance(parser);
 
-    // labels such as _start: or main:
-    // are accepted but not yet stored in the instruction list
     if (parser->current.type == TOKEN_COLON)
     {
+        if (!instruction_list_define_label(parser->instructions, mnemonic.start, mnemonic.length))
+        {
+            fprintf(stderr, "Error at line %zu: duplicate label '%.*s' or unable to store label\n", mnemonic.line, (int)mnemonic.length, mnemonic.start);
+            parser->had_error = 1;
+            return 0;
+        }
+
         advance(parser);
         return !parser->had_error;
     }
@@ -310,6 +324,7 @@ static int parse_statement(Parser *parser)
     }
 
     fprintf(stderr, "Error at line %zu, column %zu: unsupported instruction '%.*s'\n", mnemonic.line, mnemonic.column, (int)mnemonic.length, mnemonic.start);
+
     parser->had_error = 1;
     return 0;
 }
