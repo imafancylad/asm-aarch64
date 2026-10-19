@@ -6,7 +6,8 @@
 
 typedef enum {
     INSTRUCTION_MOV_IMMEDIATE,
-    INSTRUCTION_ADD_REGISTER
+    INSTRUCTION_ADD_REGISTER,
+    INSTRUCTION_BRANCH
 } InstructionType;
 
 typedef struct {
@@ -15,6 +16,7 @@ typedef struct {
     uint8_t rn;
     uint8_t rm;
     uint64_t immediate;
+    char *target_symbol;
     size_t line;
 } Instruction;
 

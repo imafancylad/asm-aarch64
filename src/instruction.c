@@ -29,6 +29,11 @@ void instruction_list_destroy(InstructionList *list)
         return;
     }
     
+    for (size_t i = 0; i < list->count; i++)
+    {
+        free(list->items[i].target_symbol);
+    }
+
     free(list->items);
 
     for (size_t i = 0; i < list->symbol_count; i++)
@@ -237,6 +242,10 @@ void instruction_list_print(const InstructionList *list)
 
             case INSTRUCTION_ADD_REGISTER:
                 printf("%4zu  ADD_REGISTER   x%u, x%u, x%u\n", instruction->line, (unsigned int)instruction->rd, (unsigned int)instruction->rn, (unsigned int)instruction->rm);
+                break;
+
+            case INSTRUCTION_BRANCH:
+                printf("%4zu BRANCH          %s\n", instruction->line, instruction->target_symbol != NULL ? instruction->target_symbol : "<missing target>");
                 break;
         }
     }

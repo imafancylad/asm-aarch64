@@ -242,6 +242,54 @@ static int parse_add(Parser *parser)
     return 1;
 }
 
+static int parse_branch(Parser *parser)
+{
+    Instruction instruction = {0};
+
+    instruction.type = INSTRUCTION_BRANCH;
+    instruction.line = parser->current.line;
+
+    if (parser->current.type != TOKEN_IDENTIFIER)
+    {
+        fprintf(stderr, "Error at line %zu, column %zu: expected branch target label\n", parser->current.line, parser->current.column);
+        parser->had_error = 1;
+        return 0;
+    }
+
+    Token target = parser->current;
+
+    instruction.target_symbol = malloc(target.length + 1);
+    if (instruction.target_symbol == NULL)
+    {
+        fprintf(stderr, "Error: unable to allocate branch target\n");
+        parser->had_error = 1;
+        return 0;
+    }
+
+    memcpy(instruction.target_symbol, target.start, target.length);
+    instruction.target_symbol[target.length] = '\0';
+
+    advance(parser);
+
+    if (parser->current.type != TOKEN_NEWLINE && parser->current.type != TOKEN_EOF)
+    {
+        fprintf(stderr, "Error at line %zu, column %zu: unexpected token after B operand\n", parser->current.line, parser->current.column);
+        free(instruction.target_symbol);
+        parser->had_error = 1;
+        return 0;
+    }
+
+    if (!instruction_list_append(parser->instructions, &instruction))
+    {
+        fprintf(stderr, "Error: unable to store branch instruction\n");
+        free(instruction.target_symbol);
+        parser->had_error = 1;
+        return 0;
+    }
+
+    return 1;
+}
+
 static int parse_global_directive(Parser *parser)
 {
     advance(parser);
@@ -321,6 +369,11 @@ static int parse_statement(Parser *parser)
     if (token_is_identifier(&mnemonic, "add"))
     {
         return parse_add(parser);
+    }
+
+    if (token_is_identifier(&mnemonic, "b"))
+    {
+        return parse_branch(parser);
     }
 
     fprintf(stderr, "Error at line %zu, column %zu: unsupported instruction '%.*s'\n", mnemonic.line, mnemonic.column, (int)mnemonic.length, mnemonic.start);

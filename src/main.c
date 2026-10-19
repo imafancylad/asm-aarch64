@@ -11,6 +11,22 @@
 #define PROGRAM_NAME "asm-aarch64"
 #define PROGRAM_VERSION "0.1.0"
 
+static int find_symbol_index(const InstructionList *instructions, const char *name, size_t *target_index)
+{
+    for (size_t i = 0; i < instructions->symbol_count; i++)
+    {
+        const Symbol *symbol = &instructions->symbols[i];
+
+        if (strcmp(symbol->name, name) == 0 && symbol->is_defined)
+        {
+            *target_index = symbol->instruction_index;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 static void print_usage(FILE *stream)
 {
     fprintf(stream,
@@ -133,9 +149,29 @@ int main(int argc, char *argv[])
 
         for (size_t i = 0; i < instructions.count; i++)
         {
+            const Instruction *instruction = &instructions.items[i];
             uint32_t machine_code;
+            int encoded = 0;
 
-            if (!encoder_encode_instruction(&instructions.items[i], &machine_code))
+            if (instruction->type == INSTRUCTION_BRANCH)
+            {
+                size_t target_index;
+
+                if (instruction->target_symbol == NULL || !find_symbol_index(&instructions, instruction->target_symbol, &target_index))
+                {
+                    fprintf(stderr, "Error at line %zu: undefined branch target '%s'\n", instruction->line, instruction->target_symbol != NULL ? instruction->target_symbol : "<missing target>");
+                    result = 1;
+                    break;
+                }
+
+                encoded = encoder_encode_branch(instruction, i, target_index, &machine_code);
+            }
+            else
+            {
+                encoded = encoder_encode_instruction(instruction, &machine_code);
+            }
+
+            if (!encoded)
             {
                 result = 1;
                 break;
